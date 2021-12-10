@@ -350,43 +350,15 @@ Lalu, restart node Blueno, Cipher, Elena, Fukurou.
 ### Soal 1
 Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Foosha menggunakan iptables, tetapi Luffy tidak ingin menggunakan MASQUERADE.
 #### **Jawaban**
-
-### Soal 2
-Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
-#### **Jawaban**
-
-### Soal 3
-Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
-#### **Jawaban**
-Jawab
-
-> Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut:
-### Soal 4
-Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
-#### **Jawaban**
-
-### Soal 5
-Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
-#### **Jawaban**
-Jawab
-
-> Selain itu di reject
-### Soal 6
-Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
-#### **Jawaban**
-Jawab
-
-> Luffy berterima kasih pada kalian karena telah membantunya. Luffy juga mengingatkan agar semua aturan iptables harus disimpan pada sistem atau paling tidak kalian menyediakan script sebagai backup.
----
-## Kendala
-
 1. => sudah terjawab
 Foosha
 ```
 iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
 ```
 
-2.
+### Soal 2
+Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
+#### **Jawaban**
 Doriki
 `dns.sh`
 ```
@@ -425,7 +397,6 @@ options {
 };
 ```
 
-
 Doriki
 ```
 service bind9 restart
@@ -444,7 +415,9 @@ ping google.com
 ping monta.if.its.ac.id
 ```
 
-3.
+### Soal 3
+Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
+#### **Jawaban**
 Jipangu, Doriki
 `soal3.sh`
 ```
@@ -457,8 +430,10 @@ Lantas di klien, coba akses
 ping 10.12.7.131
 ```
 
-4.
-
+> Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut:
+### Soal 4
+Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
+#### **Jawaban**
 Blueno
 `soal4.sh`
 ```
@@ -474,9 +449,9 @@ Chiper
 iptables -A INPUT -s 10.12.0.0/22 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
 iptables -A INPUT -s 10.12.0.0/22 -j REJECT
 ```
-
-5.
-
+### Soal 5
+Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
+#### **Jawaban**
 Elena
 `soal5.sh`
 ```
@@ -493,8 +468,10 @@ iptables -A INPUT -s 10.12.6.0/24 -d 10.12.7.128/29 -m time --timestart 15:01 --
 iptables -A INPUT -s 10.12.6.0/24 -j REJECT
 ```
 
-6.
-
+> Selain itu di reject
+### Soal 6
+Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
+#### **Jawaban**
 Jorge, Maingate
 
 ```
@@ -503,3 +480,7 @@ apt-get update
 apt-get install apache2
 service apache2 restart
 ```
+
+> Luffy berterima kasih pada kalian karena telah membantunya. Luffy juga mengingatkan agar semua aturan iptables harus disimpan pada sistem atau paling tidak kalian menyediakan script sebagai backup.
+---
+## Kendala
