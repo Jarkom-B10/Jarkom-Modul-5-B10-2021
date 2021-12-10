@@ -343,7 +343,6 @@ service isc-dhcp-relay start
 service isc-dhcp-server restart
 service isc-dhcp-server status
 ```
-
 Lalu, restart node Blueno, Cipher, Elena, Fukurou.
 ---
 
