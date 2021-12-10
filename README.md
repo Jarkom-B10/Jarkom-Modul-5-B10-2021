@@ -57,31 +57,138 @@ Tugas berikutnya adalah memberikan ip pada subnet Blueno, Cipher, Fukurou, dan E
 ### Soal 1
 Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Foosha menggunakan iptables, tetapi Luffy tidak ingin menggunakan MASQUERADE.
 #### **Jawaban**
+1. => sudah terjawab
+Foosha
+```
+iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
+```
 
 ### Soal 2
 Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
 #### **Jawaban**
+Doriki
+`dns.sh`
+```
+#!/bin/bash
+apt-get update
+apt-get install bind9 -y
+```
+
+Ubah file pada `/etc/bind/named.conf.options`
+```
+options {
+        directory "/var/cache/bind";
+
+        // If there is a firewall between you and nameservers you want
+        // to talk to, you may need to fix the firewall to allow multiple
+        // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
+
+        // If your ISP provided one or more IP addresses for stable
+        // nameservers, you probably want to use them as forwarders.
+        // Uncomment the following block, and insert the addresses replacing
+        // the all-0's placeholder.
+
+        forwarders {
+                192.168.122.1;
+        };
+
+        //========================================================================
+        // If BIND logs error messages about the root key being expired,
+        // you will need to update your keys.  See https://www.isc.org/bind-keys
+        //========================================================================
+        //dnssec-validation auto;
+        allow-query{any;};
+
+        auth-nxdomain no;    # conform to RFC1035
+				listen-on-v6 { any; };
+};
+```
+
+
+Doriki
+```
+service bind9 restart
+```
+
+Foosha
+`soal2.sh`
+```
+#!/bin/bash
+iptables -A FORWARD -d 192.200.7.128/29 -i eth0 -p tcp --dport 80 -j DROP
+```
+
+Coba testing di klien
+```
+ping google.com
+ping monta.if.its.ac.id
+```
 
 ### Soal 3
 Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
 #### **Jawaban**
-Jawab
+Jipangu, Doriki
+`soal3.sh`
+```
+#!/bin/bash
+iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
+```
+
+Lantas di klien, coba akses
+```
+ping 10.12.7.131
+```
+
 
 > Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut:
 ### Soal 4
 Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
 #### **Jawaban**
+Blueno
+`soal4.sh`
+```
+#!/bin/bash
+iptables -A INPUT -s 10.12.7.0/25 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
+iptables -A INPUT -s 10.12.7.0/25 -j REJECT
+```
 
+Chiper
+`soal4.sh`
+```
+#!/bin/bash
+iptables -A INPUT -s 10.12.0.0/22 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
+iptables -A INPUT -s 10.12.0.0/22 -j REJECT
+```
 ### Soal 5
 Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
 #### **Jawaban**
-Jawab
+Elena
+`soal5.sh`
+```
+#!/bin/bash
+iptables -A INPUT -s 10.12.4.0/23 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
+iptables -A INPUT -s 10.12.4.0/23 -j REJECT
+```
+
+Fukurou
+`soal5.sh`
+```
+#!/bin/bash
+iptables -A INPUT -s 10.12.6.0/24 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
+iptables -A INPUT -s 10.12.6.0/24 -j REJECT
+```
 
 > Selain itu di reject
 ### Soal 6
 Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
 #### **Jawaban**
-Jawab
+Jorge, Maingate
+
+```
+#!/bin/sh
+apt-get update
+apt-get install apache2
+service apache2 restart
+```
 
 > Luffy berterima kasih pada kalian karena telah membantunya. Luffy juga mengingatkan agar semua aturan iptables harus disimpan pada sistem atau paling tidak kalian menyediakan script sebagai backup.
 ---
@@ -387,128 +494,3 @@ service isc-dhcp-server status
 ```
 
 Lalu, restart node Blueno, Cipher, Elena, Fukurou.
-
-
-1. => sudah terjawab
-Foosha
-```
-iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
-```
-
-2.
-Doriki
-`dns.sh`
-```
-#!/bin/bash
-apt-get update
-apt-get install bind9 -y
-```
-
-Ubah file pada `/etc/bind/named.conf.options`
-```
-options {
-        directory "/var/cache/bind";
-
-        // If there is a firewall between you and nameservers you want
-        // to talk to, you may need to fix the firewall to allow multiple
-        // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
-
-        // If your ISP provided one or more IP addresses for stable
-        // nameservers, you probably want to use them as forwarders.
-        // Uncomment the following block, and insert the addresses replacing
-        // the all-0's placeholder.
-
-        forwarders {
-                192.168.122.1;
-        };
-
-        //========================================================================
-        // If BIND logs error messages about the root key being expired,
-        // you will need to update your keys.  See https://www.isc.org/bind-keys
-        //========================================================================
-        //dnssec-validation auto;
-        allow-query{any;};
-
-        auth-nxdomain no;    # conform to RFC1035
-				listen-on-v6 { any; };
-};
-```
-
-
-Doriki
-```
-service bind9 restart
-```
-
-Foosha
-`soal2.sh`
-```
-#!/bin/bash
-iptables -A FORWARD -d 192.200.7.128/29 -i eth0 -p tcp --dport 80 -j DROP
-```
-
-Coba testing di klien
-```
-ping google.com
-ping monta.if.its.ac.id
-```
-
-3.
-Jipangu, Doriki
-`soal3.sh`
-```
-#!/bin/bash
-iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
-```
-
-Lantas di klien, coba akses
-```
-ping 10.12.7.131
-```
-
-4.
-
-Blueno
-`soal4.sh`
-```
-#!/bin/bash
-iptables -A INPUT -s 10.12.7.0/25 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
-iptables -A INPUT -s 10.12.7.0/25 -j REJECT
-```
-
-Chiper
-`soal4.sh`
-```
-#!/bin/bash
-iptables -A INPUT -s 10.12.0.0/22 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
-iptables -A INPUT -s 10.12.0.0/22 -j REJECT
-```
-
-5.
-
-Elena
-`soal5.sh`
-```
-#!/bin/bash
-iptables -A INPUT -s 10.12.4.0/23 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
-iptables -A INPUT -s 10.12.4.0/23 -j REJECT
-```
-
-Fukurou
-`soal5.sh`
-```
-#!/bin/bash
-iptables -A INPUT -s 10.12.6.0/24 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
-iptables -A INPUT -s 10.12.6.0/24 -j REJECT
-```
-
-6.
-
-Jorge, Maingate
-
-```
-#!/bin/sh
-apt-get update
-apt-get install apache2
-service apache2 restart
-```
