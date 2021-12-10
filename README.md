@@ -105,14 +105,14 @@ Pembagian tabel VLSM
 Pembagian IP
 | Subnet |          Note          | Jumlah IP | Length |       IP      |   Subnet Mask   |
 |:------:|:----------------------:|:---------:|:------:|:-------------:|:---------------:|
-| A1     | Water7 Doriki Jipangu  | 3         | 29     | 192.200.7.128 | 255.255.255.248 |
-| A2     | Water7 Blueno          | 101       | 25     | 192.200.7.0   | 255.255.255.128 |
-| A3     | Water7 Cipher          | 701       | 22     | 192.200.0.0   | 255.255.252.0   |
-| A4     | Water7 Foosha          | 2         | 30     | 192.200.7.144 | 255.255.255.252 |
-| A5     | Foosha Guanhao         | 2         | 30     | 192.200.7.148 | 255.255.255.252 |
-| A6     | Guanhao Elena          | 301       | 23     | 192.200.4.0   | 255.255.254.0   |
-| A7     | Guanhao Fukurou        | 201       | 24     | 192.200.6.0   | 255.255.255.0   |
-| A8     | Guanhao Maingate Jorge | 3         | 29     | 192.200.7.136 | 255.255.255.248 |
+| A1     | Water7 Doriki Jipangu  | 3         | 29     | 10.12.7.128 | 255.255.255.248 |
+| A2     | Water7 Blueno          | 101       | 25     | 10.12.7.0   | 255.255.255.128 |
+| A3     | Water7 Cipher          | 701       | 22     | 10.12.0.0   | 255.255.252.0   |
+| A4     | Water7 Foosha          | 2         | 30     | 10.12.7.144 | 255.255.255.252 |
+| A5     | Foosha Guanhao         | 2         | 30     | 10.12.7.148 | 255.255.255.252 |
+| A6     | Guanhao Elena          | 301       | 23     | 10.12.4.0   | 255.255.254.0   |
+| A7     | Guanhao Fukurou        | 201       | 24     | 10.12.6.0   | 255.255.255.0   |
+| A8     | Guanhao Maingate Jorge | 3         | 29     | 10.12.7.136 | 255.255.255.248 |
 
 ![Pohon IP](./assets/pohon-ip.png)
 
@@ -444,7 +444,7 @@ Foosha
 `soal2.sh`
 ```
 #!/bin/bash
-iptables -A FORWARD -d 192.200.7.128/29 -i eth0 -p tcp --dport 80 -j DROP
+iptables -A FORWARD -d 10.12.7.128/29 -i eth0 -p tcp --dport 80 -j DROP
 ```
 
 Coba testing di klien
