@@ -41,9 +41,10 @@ Keterangan :
 
 ## Konfigurasi
 ### Soal B
-Karena kalian telah belajar subnetting dan routing, Luffy ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM. setelah melakukan subnetting, 
+Karena kalian telah belajar subnetting dan routing, Luffy ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM. setelah melakukan subnetting,
 #### **Jawaban**
-Pembagian tabel VLSM
+Pada contoh ini, kami menggunakan pembagian IP dengan teknik VLSM. Berikut adalah tabel hasil pembagian IP yang kami lakukan.
+
 | Subnet |          Note          | Jumlah IP | Length |
 |:------:|:----------------------:|:---------:|:------:|
 | A1     | Water7 Doriki Jipangu  | 3         | 29     |
@@ -56,9 +57,13 @@ Pembagian tabel VLSM
 | A8     | Guanhao Maingate Jorge | 3         | 29     |
 | Total  |                        | 1314      | 21     |
 
+Sehingga, secara umum, berikut adalah pembagian topologi yang kami lakukan.
 ![Pembagian Topologi](./assets/topologi-bagi.png)
 
-Pembagian IP
+Setelahnya, kami melakukan pembagian pohon IP berdasarkan tabel subnet yang sudah dibuat. Pohon IP tersebut berbentuk sebagai berikut.
+![Pohon IP](./assets/pohon-ip.png)
+
+Sehingga, hasil akhir subnetting menggunakan VLSM adalah berikut.
 | Subnet |          Note          | Jumlah IP | Length |       IP      |   Subnet Mask   |
 |:------:|:----------------------:|:---------:|:------:|:-------------:|:---------------:|
 | A1     | Water7 Doriki Jipangu  | 3         | 29     | 10.12.7.128 | 255.255.255.248 |
@@ -70,10 +75,11 @@ Pembagian IP
 | A7     | Guanhao Fukurou        | 201       | 24     | 10.12.6.0   | 255.255.255.0   |
 | A8     | Guanhao Maingate Jorge | 3         | 29     | 10.12.7.136 | 255.255.255.248 |
 
-![Pohon IP](./assets/pohon-ip.png)
 ### Soal C
 Kalian juga diharuskan melakukan Routing agar setiap perangkat pada jaringan tersebut dapat terhubung.
 #### **Jawaban**
+Setelahnya, kami melakukan pembagian IP dan mengatur routing. Pembagian setting konfigurasi network adalah berikut.
+
 Doriki
 ```
 auto eth0
@@ -219,14 +225,13 @@ address 10.12.6.2
 netmask 255.255.255.0
 gateway 10.12.6.1
 ```
-### Soal D
-Tugas berikutnya adalah memberikan ip pada subnet Blueno, Cipher, Fukurou, dan Elena secara dinamis menggunakan bantuan DHCP server. Kemudian kalian ingat bahwa kalian harus setting DHCP Relay pada router yang menghubungkannya.
-#### **Jawaban**
-Foosha => sekaligus nomor 1
-`inet.sh`
+
+Contoh di atas, diasumsikan client tidak diatur IP-nya oleh DHCP.
+
+Setelah itu, kami mengatur routing keseluruhan topologi. Dengan menjalankan `inet.sh` pada Foosha, kita sudah dapat melakukan ping terhadap luar topologi di semua node. Sebagai tambahan, kami juga menambahkan pengaturan internet tanpa `MASQUERADE` di mana sesuai untuk nomor 1.
 ```
 #!/bin/bash
-# routing
+# teknik routing
 # kiri
 route add -net 10.12.7.128 netmask 255.255.255.248 gw 10.12.7.145
 route add -net 10.12.7.0 netmask 255.255.255.128 gw 10.12.7.145
@@ -237,21 +242,25 @@ route add -net 10.12.4.0 netmask 255.255.254.0 gw 10.12.7.150
 route add -net 10.12.6.0 netmask 255.255.255.0 gw 10.12.7.150
 route add -net 10.12.7.136 netmask 255.255.255.248 gw 10.12.7.150
 
-# iptables
+# pengaturan internet tanpa MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
 ```
 
-Node lain
-`access.sh`
+Lalu, jalankan `access.sh` pada node-node lain.
 ```
 #!/bin/bash
 echo "nameserver 192.168.122.1" > /etc/resolv.conf
 ```
 
-Sehingga di semua node dapat dijalankan:
-![Akses Internet](./assets/soal-d-internet.png)
+Sehingga pada seluruh node, kita dapat mengakses internet.
+![Akses Internet](./assets/soal-c-internet.png)
 
-Blueno, Cipher, Fukurou, Elena
+
+### Soal D
+Tugas berikutnya adalah memberikan ip pada subnet Blueno, Cipher, Fukurou, dan Elena secara dinamis menggunakan bantuan DHCP server. Kemudian kalian ingat bahwa kalian harus setting DHCP Relay pada router yang menghubungkannya.
+#### **Jawaban**
+
+Ganti konfigurasi network pada node client, yakni Blueno, Cipher, Fukurou, dan Elena menjadi sebagai berikut.
 ```
 auto lo
 iface lo inet loopback
@@ -259,16 +268,17 @@ iface lo inet loopback
 auto eth0
 iface eth0 inet dhcp
 ```
-Jipangu
-`server.sh`
+
+Pada Jipangu, install server DHCP dengan menjalankan `server.sh`.
 ```
 #!/bin/bash
 apt-get update
 apt-get install isc-dhcp-server -y
 ```
-Pada `/etc/default/isc-dhcp-server` tambahkan `INTERFACES="eth0"`
 
-Pada `/etc/dhcp/dhcpd.conf` tambahkan
+Tetap pada Jipangu, tambahkan `INTERFACES="eth0"` dalam `/etc/default/isc-dhcp-server`.
+
+Serta dalam `/etc/dhcp/dhcpd.conf`, tambahkan.
 ```
 # Blueno A2
 subnet 10.12.7.0 netmask 255.255.255.128 {
@@ -316,8 +326,7 @@ subnet 10.12.7.128 netmask 255.255.255.248 {
 }
 ```
 
-Water7, Guanhao
-`relay.sh`
+Selanjutnya, lakukan instalasi DHCP Relay pada node Water7 dan Guanhao dengan menjalankan `relay.sh`.
 ```
 #!/bin/bash
 apt-get update
@@ -325,7 +334,7 @@ apt-get install isc-dhcp-relay -y
 service isc-dhcp-relay start
 ```
 
-Setting yang digunakan (saat instalasi/dapat diakses di `/etc/default/isc-dhcp-relay`)
+Saat installasi, pengaturan yang digunakan pada setting ini adalah sebagai berikut.
 ```
 # What servers should the DHCP relay forward requests to?
 SERVERS="10.12.7.131"
@@ -336,20 +345,20 @@ INTERFACES="eth0 eth1 eth2 eth3"
 # Additional options that are passed to the DHCP relay daemon?
 OPTIONS=""
 ```
+Di mana pengaturan tersebut, dapat diakses di `/etc/default/isc-dhcp-relay`.
 
-Lalu, restart dhcp-relay di Water7, Guanhao dilanjutkan dhcp-server di Jipangu
-
-Water7, Guanhao
+Lalu, restart dhcp-relay di node Water7 dan Guanhao.
 ```
 service isc-dhcp-relay start
 ```
 
-Jipangu
+Restart dan cek status DHCP Server di Jipangu.
 ```
 service isc-dhcp-server restart
 service isc-dhcp-server status
 ```
-Lalu, restart node Blueno, Cipher, Elena, Fukurou.
+
+Lalu, restart kembali node Blueno, Cipher, Elena, dan Fukurou. Selanjutnya, kita akan mendapati bahwa ip sudah berubah sesuai dengan pengaturan DHCP.
 ![Hasil IP Client](./assets/soal-d-ip-client.png)
 
 ---
@@ -358,25 +367,27 @@ Lalu, restart node Blueno, Cipher, Elena, Fukurou.
 ### Soal 1
 Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Foosha menggunakan iptables, tetapi Luffy tidak ingin menggunakan MASQUERADE.
 #### **Jawaban**
-1. => sudah terjawab
-Foosha
+
+1. Sebagaimana dalam `soal C`, pengaturannya adalah sebagai berikut.
 ```
 iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
 ```
-![Akses Internet](./assets/soal-d-internet.png)
+
+Didapatkan pula, hasilnya adalah.
+![Akses Internet](./assets/soal-c-internet.png)
 
 ### Soal 2
 Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
 #### **Jawaban**
-Doriki
-`dns.sh`
+
+Untuk mengatur DNS, install DNS Server di Doriki dengan menjalankan `dns.sh`.
 ```
 #!/bin/bash
 apt-get update
 apt-get install bind9 -y
 ```
 
-Ubah file pada `/etc/bind/named.conf.options`
+Ubah isi file pada `/etc/bind/named.conf.options`, agar sesuai dengan berikut.
 ```
 options {
         directory "/var/cache/bind";
@@ -406,41 +417,41 @@ options {
 };
 ```
 
-Doriki
+Lalu, restart DNS Server di Doriki.
 ```
 service bind9 restart
 ```
 
-Foosha
-`soal2.sh`
+Pada Foosha, jalankan `soal2.sh` agar semua akses HTTP langsung di-drop.
 ```
 #!/bin/bash
 iptables -A FORWARD -d 10.12.7.128/29 -i eth0 -p tcp --dport 80 -j DROP
 ```
 
-Coba testing di klien
+Akhirnya, pada client dapat dijalankan kedua command berikut.
 ```
 ping google.com
 ping monta.if.its.ac.id
 ```
 
+Hasil yang didapatkan adalah sebagai berikut.
 ![Hasil Testing](./assets/soal-2-http.png)
 
 ### Soal 3
 Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
 #### **Jawaban**
-Jipangu, Doriki
-`soal3.sh`
+Pada Jipangu dan Doriki, jalankan `soal3.sh` agar membatasi akses koneksi yang dapat masuk.
 ```
 #!/bin/bash
 iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
 ```
 
-Lantas di klien, coba akses
+Lantas di client, coba jalankan command berikut.
 ```
 ping 10.12.7.131
 ```
 
+Hasil dari menjalankan keempat client tersebut adalah berikut.
 ![Hasil Keempat Klien Akses](./assets/soal-3.png)
 
 > Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut:
@@ -448,39 +459,37 @@ ping 10.12.7.131
 Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
 #### **Jawaban**
 
-Water7
-`soal4.sh`
+Pada Water7, batasi akses dengan menjalankan `soal4.sh`.
 ```
 #!/bin/bash
 iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
 iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -j REJECT
 ```
 
-Lakukan uji coba berikut.
+Sembari client Blueno dan Cipher menjalankan `ping google.com` ganti pengaturan waktu di Water7.
 ```
 Senin
 date -s "9 DEC 2021 08:00:00" -> bisa
 date -s "9 DEC 2021 18:00:00" -> gagal
 
-
 Sabtu
 date -s "11 DEC 2021 09:00:00" -> gagal
 ```
 
+Hasilnya tampak pada gambar berikut.
 ![Uji Coba Soal 4](./assets/soal-4-uji-coba-tanggal.png)
 
 ### Soal 5
 Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
 #### **Jawaban**
-Guanhao
-`soal5.sh`
+Pada Guanhao, jalankan `soal5.sh`.
 ```
 iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 00:00 --timestop 06:59 -j ACCEPT
 iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 15:01 --timestop 23:59 -j ACCEPT
 iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -j REJECT
 ```
 
-Lakukan uji coba berikut.
+Sembari client Elena dan Fukurou menjalankan `ping google.com` ganti pengaturan waktu di Guanhao.
 ```
 date -s "11 DEC 2021 02:00:00" -> bisa
 date -s "11 DEC 2021 14:00:00" -> gagal
@@ -492,8 +501,7 @@ date -s "11 DEC 2021 14:00:00" -> gagal
 ### Soal 6
 Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
 #### **Jawaban**
-Jorge, Maingate
-`root/web-servers.sh`
+Pada Jorge dan Maingate, lakukan installasi web server Apache dengan menjalankan `web-servers.sh`.
 ```
 #!/bin/sh
 apt-get update
@@ -501,7 +509,7 @@ apt-get install apache2 -y
 service apache2 restart
 ```
 
-Lalu, pada Jorge atau Maingate, isikan `/var/www/html/index.html` dengan nama node tersebut. Contoh pada Maingate.
+Lalu, pada Jorge atau Maingate, ganti `/var/www/html/index.html` dengan nama node tersebut. Contoh pada Maingate.
 ```
 <!DOCTYPE html>
 <html>
@@ -514,8 +522,7 @@ Lalu, pada Jorge atau Maingate, isikan `/var/www/html/index.html` dengan nama no
 </html>
 ```
 
-Lalu, pada Guanhao jalankan berikut.
-`soal6.sh`
+Lalu, pada Guanhao, lakukan load balancing dengan menjalankan `soal6.sh`.
 ```
 #!/bin/sh
 iptables -A PREROUTING -t nat -p tcp -d 10.12.7.128/29 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.12.7.138
@@ -524,13 +531,15 @@ iptables -t nat -A POSTROUTING -p tcp -d 10.12.7.138 -j SNAT --to-source 10.12.7
 iptables -t nat -A POSTROUTING -p tcp -d 10.12.7.139 -j SNAT --to-source 10.12.7.128
 ```
 
-Sekarang, coba akses ip Doriki dan client akan diarahkan ke Jorge dan Maingate secara bergantian.
+Sekarang, coba minta client akses IP Doriki dan client akan diarahkan ke Jorge dan Maingate secara bergantian.
 ```
 curl 10.12.7.131
 ```
 
+Hasil tersebut ditampilkan pada gambar berikut.
 ![Akses Bergantian](./assets/soal-6-server.png)
 
 > Luffy berterima kasih pada kalian karena telah membantunya. Luffy juga mengingatkan agar semua aturan iptables harus disimpan pada sistem atau paling tidak kalian menyediakan script sebagai backup.
 ---
 ## Kendala
+- Sudah masuk musim EAS, sehingga beberapa teman fokus mengerjakan EAS.
