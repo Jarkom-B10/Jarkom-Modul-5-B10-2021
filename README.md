@@ -38,7 +38,7 @@ Keterangan :
 - Jumlah Host pada Cipher adalah 700 host
 - Jumlah Host pada Elena adalah 300 host
 - Jumlah Host pada Fukurou adalah 200 host
----
+
 ## Konfigurasi
 ### Soal B
 Karena kalian telah belajar subnetting dan routing, Luffy ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM. setelah melakukan subnetting, 
@@ -248,6 +248,9 @@ Node lain
 echo "nameserver 192.168.122.1" > /etc/resolv.conf
 ```
 
+Sehingga di semua node dapat dijalankan:
+![Akses Internet](./assets/soal-d-internet.png)
+
 Blueno, Cipher, Fukurou, Elena
 ```
 auto lo
@@ -335,15 +338,19 @@ OPTIONS=""
 ```
 
 Lalu, restart dhcp-relay di Water7, Guanhao dilanjutkan dhcp-server di Jipangu
-```
-# Di Water7, Guanhao
-service isc-dhcp-relay start
 
-# Di Jipangu
+Water7, Guanhao
+```
+service isc-dhcp-relay start
+```
+
+Jipangu
+```
 service isc-dhcp-server restart
 service isc-dhcp-server status
 ```
 Lalu, restart node Blueno, Cipher, Elena, Fukurou.
+![Hasil IP Client](./assets/soal-d-ip-client.png)
 
 ---
 
@@ -356,6 +363,7 @@ Foosha
 ```
 iptables -t nat -A POSTROUTING -s 10.12.0.0/21 -o eth0 -j SNAT --to-source 192.168.122.55
 ```
+![Akses Internet](./assets/soal-d-internet.png)
 
 ### Soal 2
 Kalian diminta untuk mendrop semua akses HTTP dari luar Topologi kalian pada server yang merupakan DHCP Server dan DNS Server demi menjaga keamanan.
@@ -416,6 +424,8 @@ ping google.com
 ping monta.if.its.ac.id
 ```
 
+![Hasil Testing](./assets/soal-2-http.png)
+
 ### Soal 3
 Karena kelompok kalian maksimal terdiri dari 3 orang. Luffy meminta kalian untuk membatasi DHCP dan DNS Server hanya boleh menerima maksimal 3 koneksi ICMP secara bersamaan menggunakan iptables, selebihnya didrop.
 #### **Jawaban**
@@ -431,56 +441,95 @@ Lantas di klien, coba akses
 ping 10.12.7.131
 ```
 
+![Hasil Keempat Klien Akses](./assets/soal-3.png)
+
 > Kemudian kalian diminta untuk membatasi akses ke Doriki yang berasal dari subnet Blueno, Cipher, Elena dan Fukuro dengan beraturan sebagai berikut:
 ### Soal 4
 Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
 #### **Jawaban**
-Blueno
+
+Water7
 `soal4.sh`
 ```
 #!/bin/bash
-iptables -A INPUT -s 10.12.7.0/25 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
-iptables -A INPUT -s 10.12.7.0/25 -j REJECT
+iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
+iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -j REJECT
 ```
 
-Chiper
-`soal4.sh`
+Lakukan uji coba berikut.
 ```
-#!/bin/bash
-iptables -A INPUT -s 10.12.0.0/22 -d 10.12.7.128/29 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
-iptables -A INPUT -s 10.12.0.0/22 -j REJECT
+Senin
+date -s "9 DEC 2021 08:00:00" -> bisa
+date -s "9 DEC 2021 18:00:00" -> gagal
+
+
+Sabtu
+date -s "11 DEC 2021 09:00:00" -> gagal
 ```
+
+![Uji Coba Soal 4](./assets/soal-4-uji-coba-tanggal.png)
+
 ### Soal 5
 Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
 #### **Jawaban**
-Elena
+Guanhao
 `soal5.sh`
 ```
-#!/bin/bash
-iptables -A INPUT -s 10.12.4.0/23 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
-iptables -A INPUT -s 10.12.4.0/23 -j REJECT
+iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 00:00 --timestop 06:59 -j ACCEPT
+iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 15:01 --timestop 23:59 -j ACCEPT
+iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -j REJECT
 ```
 
-Fukurou
-`soal5.sh`
+Lakukan uji coba berikut.
 ```
-#!/bin/bash
-iptables -A INPUT -s 10.12.6.0/24 -d 10.12.7.128/29 -m time --timestart 15:01 --timestop 06:59 -j ACCEPT
-iptables -A INPUT -s 10.12.6.0/24 -j REJECT
+date -s "11 DEC 2021 02:00:00" -> bisa
+date -s "11 DEC 2021 14:00:00" -> gagal
 ```
+
+![Uji Coba Soal 5](./assets/soal-5-uji-coba-tanggal.png)
 
 > Selain itu di reject
 ### Soal 6
 Karena kita memiliki 2 Web Server, Luffy ingin Guanhao disetting sehingga setiap request dari client yang mengakses DNS Server akan didistribusikan secara bergantian pada Jorge dan Maingate
 #### **Jawaban**
 Jorge, Maingate
-
+`root/web-servers.sh`
 ```
 #!/bin/sh
 apt-get update
-apt-get install apache2
+apt-get install apache2 -y
 service apache2 restart
 ```
+
+Lalu, pada Jorge atau Maingate, isikan `/var/www/html/index.html` dengan nama node tersebut. Contoh pada Maingate.
+```
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Maingate</title>
+  </head>
+  <body>
+    <h1>Ini server Maingate</h1>
+  </body>
+</html>
+```
+
+Lalu, pada Guanhao jalankan berikut.
+`soal6.sh`
+```
+#!/bin/sh
+iptables -A PREROUTING -t nat -p tcp -d 10.12.7.128/29 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.12.7.138
+iptables -A PREROUTING -t nat -p tcp -d 10.12.7.128/29 -j DNAT --to-destination 10.12.7.139
+iptables -t nat -A POSTROUTING -p tcp -d 10.12.7.138 -j SNAT --to-source 10.12.7.128
+iptables -t nat -A POSTROUTING -p tcp -d 10.12.7.139 -j SNAT --to-source 10.12.7.128
+```
+
+Sekarang, coba akses ip Doriki dan client akan diarahkan ke Jorge dan Maingate secara bergantian.
+```
+curl 10.12.7.131
+```
+
+![Akses Bergantian](./assets/soal-6-server.png)
 
 > Luffy berterima kasih pada kalian karena telah membantunya. Luffy juga mengingatkan agar semua aturan iptables harus disimpan pada sistem atau paling tidak kalian menyediakan script sebagai backup.
 ---
