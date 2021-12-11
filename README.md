@@ -3,9 +3,9 @@
 ## Anggota B10
 Nama | NRP | Pembagian
 ------------ | ------------- | -------------
-Pramudya Tiandana Wisnu Gautama | 05111940000018 | 
-Jason Andrew Gunawan | 05111940000085 | 
-Frans Wijaya | 05111940000098 | 
+Pramudya Tiandana Wisnu Gautama | 05111940000018 | 1-6
+Jason Andrew Gunawan | 05111940000085 | Persiapan
+Frans Wijaya | 05111940000098 | Persiapan
 
 ## Daftar Isi
 - [Jarkom-Modul-5-B10-2021](#jarkom-modul-5-b10-2021)
@@ -543,3 +543,4 @@ Hasil tersebut ditampilkan pada gambar berikut.
 ---
 ## Kendala
 - Sudah masuk musim EAS, sehingga beberapa teman fokus mengerjakan EAS.
+- Sulit membagi tugas karena hanya terdapat 1 file dan tidak bisa dikerjakan dalam waktu bersamaan.
