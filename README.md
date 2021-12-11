@@ -459,14 +459,14 @@ Hasil dari menjalankan keempat client tersebut adalah berikut.
 Akses dari subnet Blueno dan Cipher hanya diperbolehkan pada pukul 07.00 - 15.00 pada hari Senin sampai Kamis.
 #### **Jawaban**
 
-Pada Water7, batasi akses dengan menjalankan `soal4.sh`.
+Pada Doriki, batasi akses dengan menjalankan `soal4.sh`.
 ```
 #!/bin/bash
-iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
-iptables -A FORWARD -s 10.12.7.0/25,10.12.0.0/22 -j REJECT
+iptables -A INPUT -s 10.12.7.0/25,10.12.0.0/22 -m time --timestart 07:00 --timestop 15:00 --weekdays Mon,Tue,Wed,Thu -j ACCEPT
+iptables -A INPUT -s 10.12.7.0/25,10.12.0.0/22 -j REJECT
 ```
 
-Sembari client Blueno dan Cipher menjalankan `ping google.com` ganti pengaturan waktu di Water7.
+Sembari client Blueno dan Cipher menjalankan `ping google.com` ganti pengaturan waktu di Doriki.
 ```
 Senin
 date -s "9 DEC 2021 08:00:00" -> bisa
@@ -482,14 +482,13 @@ Hasilnya tampak pada gambar berikut.
 ### Soal 5
 Akses dari subnet Elena dan Fukuro hanya diperbolehkan pada pukul 15.01 hingga pukul 06.59 setiap harinya.
 #### **Jawaban**
-Pada Guanhao, jalankan `soal5.sh`.
+Pada Doriki, jalankan `soal5.sh`.
 ```
-iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 00:00 --timestop 06:59 -j ACCEPT
-iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 15:01 --timestop 23:59 -j ACCEPT
-iptables -A FORWARD -s 10.12.4.0/23,10.12.6.0/24 -j REJECT
+#!/bin/bash
+iptables -A INPUT -s 10.12.4.0/23,10.12.6.0/24 -m time --timestart 06:59 --timestop 15:01 -j REJECT
 ```
 
-Sembari client Elena dan Fukurou menjalankan `ping google.com` ganti pengaturan waktu di Guanhao.
+Sembari client Elena dan Fukurou menjalankan `ping google.com` ganti pengaturan waktu di Doriki.
 ```
 date -s "11 DEC 2021 02:00:00" -> bisa
 date -s "11 DEC 2021 14:00:00" -> gagal
